@@ -30,9 +30,6 @@
             gridY = _gridY;
         }
 
-        /// <summary>
-        ///     Get fCost of this node.
-        /// </summary>
         public int fCost => gCost + hCost;
 
         public void Update(float _price, int _gridX, int _gridY)

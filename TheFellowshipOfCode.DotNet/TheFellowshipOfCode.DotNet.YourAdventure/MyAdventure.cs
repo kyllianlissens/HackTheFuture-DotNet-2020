@@ -20,7 +20,6 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
 
         public List<Point> currentPath = null;
         public List<Point> TreasurePoints = new List<Point>();
-        public List<Point>
         public List<Point> BlacklistPoints = new List<Point>();
         public float[,] tilesmap;
         public Point FinishPoint;
