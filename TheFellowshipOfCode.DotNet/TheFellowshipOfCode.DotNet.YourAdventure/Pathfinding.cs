@@ -5,31 +5,15 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
 {
     public class Pathfinding
     {
-        /// <summary>
-        ///     Different ways to calculate path distance.
-        /// </summary>
+        
         public enum DistanceType
         {
-            /// <summary>
-            ///     The "ordinary" straight-line distance between two points.
-            /// </summary>
             Euclidean,
 
-            /// <summary>
-            ///     Distance without diagonals, only horizontal and/or vertical path lines.
-            /// </summary>
             Manhattan
         }
 
-        /// <summary>
-        ///     Find a path between two points.
-        /// </summary>
-        /// <param name="grid">Grid to search.</param>
-        /// <param name="startPos">Starting position.</param>
-        /// <param name="targetPos">Ending position.</param>
-        /// <param name="distance">The type of distance, Euclidean or Manhattan.</param>
-        /// <param name="ignorePrices">If true, will ignore tile price (how much it "cost" to walk on).</param>
-        /// <returns>List of points that represent the path to walk.</returns>
+        
         public static List<Point> FindPath(Grid grid, Point startPos, Point targetPos,
             DistanceType distance = DistanceType.Euclidean, bool ignorePrices = false)
         {
@@ -44,15 +28,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
             return ret;
         }
 
-        /// <summary>
-        ///     Internal function that implements the path-finding algorithm.
-        /// </summary>
-        /// <param name="grid">Grid to search.</param>
-        /// <param name="startPos">Starting position.</param>
-        /// <param name="targetPos">Ending position.</param>
-        /// <param name="distance">The type of distance, Euclidean or Manhattan.</param>
-        /// <param name="ignorePrices">If true, will ignore tile price (how much it "cost" to walk on).</param>
-        /// <returns>List of grid nodes that represent the path to walk.</returns>
+
         private static List<Node> _ImpFindPath(Grid grid, Point startPos, Point targetPos,
             DistanceType distance = DistanceType.Euclidean, bool ignorePrices = false)
         {
@@ -97,13 +73,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
             return null;
         }
 
-        /// <summary>
-        ///     Retrace path between two points.
-        /// </summary>
-        /// <param name="grid">Grid to work on.</param>
-        /// <param name="startNode">Starting node.</param>
-        /// <param name="endNode">Ending (target) node.</param>
-        /// <returns>Retraced path between nodes.</returns>
+        
         private static List<Node> RetracePath(Grid grid, Node startNode, Node endNode)
         {
             var path = new List<Node>();
@@ -119,12 +89,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
             return path;
         }
 
-        /// <summary>
-        ///     Get distance between two nodes.
-        /// </summary>
-        /// <param name="nodeA">First node.</param>
-        /// <param name="nodeB">Second node.</param>
-        /// <returns>Distance between nodes.</returns>
+        
         private static int GetDistance(Node nodeA, Node nodeB)
         {
             var dstX = Math.Abs(nodeA.gridX - nodeB.gridX);
