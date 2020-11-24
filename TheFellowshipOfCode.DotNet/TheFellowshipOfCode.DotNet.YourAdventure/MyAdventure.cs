@@ -112,7 +112,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                         {
                             var tile = map.Tiles[i, j];
                             tiles.Add(new TileLocation(i, j, tile));
-                            if (tile.TileType != TileType.Enemy)
+                            if (tile.TileType == TileType.Enemy)
                             {
                                 foreach (var tileEnemy in tile.EnemyGroup.Enemies.Select(enemy => new TileEnemy(tile, enemy)))
                                 {
@@ -125,8 +125,6 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
 
                     return Task.FromResult(new Turn(TurnAction.Pass));
                 }
-
-                
 
                 if (request.PossibleActions.Contains(TurnAction.Loot)) return Task.FromResult(new Turn(TurnAction.Loot));
 
