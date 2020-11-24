@@ -176,8 +176,6 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                     return Task.FromResult(new Turn(TurnAction.Pass));
                 }
 
-                
-
                 if (request.PossibleActions.Contains(TurnAction.Loot)) return Task.FromResult(new Turn(TurnAction.Loot));
 
                 return Task.FromResult(new Turn(request.PossibleActions[_random.Next(request.PossibleActions.Length)]));
