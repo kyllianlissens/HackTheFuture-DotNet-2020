@@ -23,7 +23,7 @@ namespace TheFellowshipOfCode.DotNet.AdventureRunner
 
         [Option("-v|--verbose", "This is the verbose option. If you turn this on the game will be displayed.", CommandOptionType.NoValue)]
         // ReSharper disable once UnassignedGetOnlyAutoProperty
-        private bool OutputGame { get; } = true;
+        private bool OutputGame { get; } = false;
 
         [Option("-t|--time",
             "This is the time between turns in milliseconds. Only use this if you also use the '-v|--verbose' option.",

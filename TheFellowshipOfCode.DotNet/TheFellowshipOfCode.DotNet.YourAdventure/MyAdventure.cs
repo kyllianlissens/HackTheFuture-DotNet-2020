@@ -7,7 +7,9 @@ using HTF2020.Contracts.Enums;
 using HTF2020.Contracts.Models;
 using HTF2020.Contracts.Models.Adventurers;
 using HTF2020.Contracts.Models.Enemies;
+using HTF2020.Contracts.Models.Party;
 using HTF2020.Contracts.Requests;
+using HTF2020.GameController.State;
 
 namespace TheFellowshipOfCode.DotNet.YourAdventure
 {
@@ -40,7 +42,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
     public class MyAdventure : IAdventure
     {
         private readonly Random _random = new Random();
-
+        private Party _party;
         public Task<Party> CreateParty(CreatePartyRequest request)
         {
             var party = new Party
@@ -61,21 +63,36 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
              */
             for (var i = 0; i < request.MembersCount; i++)
             {
-
-                party.Members.Add(new Fighter()
+                if (i % 2 == 0)
                 {
-                    Id = i,
-                    Name = $"Monke {i + 1}",
-                    Constitution = 11,
-                    Strength = 12,
-                    Intelligence = 11
-                });
+                    party.Members.Add(new Wizard()
+                    {
+                        Id = i,
+                        Name = $"Monke Wizard {i + 1}",
+                        Constitution = 13,
+                        Strength = 8,
+                        Intelligence = 13
+                    });
+                }
+                else
+                {
+                    party.Members.Add(new Fighter()
+                    {
+                        Id = i,
+                        Name = $"Monke Fighter {i + 1}",
+                        Constitution = 13,
+                        Strength = 13,
+                        Intelligence = 8
+                    });
+                }
+               
             }
 
+            _party = party;
             return Task.FromResult(party);
         }
 
-
+        
         List<Turn> previousTurns = new List<Turn>();
 
         List<TileEnemy> enemies = new List<TileEnemy>();
@@ -89,8 +106,34 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
 
         }
 
+        public double EnemyGroupDifficulty(EnemyGroup enemies, Party party)
+        {
+            var totalCost = 0.00;
+            foreach (var enemy in enemies.Enemies)
+            {
+
+                if (enemy.GetType() == typeof(Goblin))
+                {
+                    totalCost += 2;
+                }
+                else if (enemy.GetType() == typeof(Sorcerer) || enemy.GetType() == typeof(Heavy))
+                {
+                    totalCost += 3;
+                }
+            }
+
+            totalCost -= amountOfPotions;
+
+            return totalCost;
+
+
+        }
+
+        public int amountOfPotions = 0;
+
         public Task<Turn> PlayTurn(PlayTurnRequest request)
         {
+            
             return riskBasedStrategic();
 
             Task<Turn> riskBasedStrategic()
@@ -103,6 +146,12 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                 var isInCombat = request.IsCombat;
                 var possibleEnemies = request.PossibleTargets;
 
+                if (possibleActions.Contains(TurnAction.DrinkPotion)) amountOfPotions++;
+
+                
+
+                
+
                 if (!calculated)
                 {
                     calculated = true;
@@ -112,8 +161,9 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                         {
                             var tile = map.Tiles[i, j];
                             tiles.Add(new TileLocation(i, j, tile));
-                            if (tile.TileType != TileType.Enemy)
+                            if (tile.TileType == TileType.Enemy)
                             {
+                                EnemyGroupDifficulty(tile.EnemyGroup, _party);
                                 foreach (var tileEnemy in tile.EnemyGroup.Enemies.Select(enemy => new TileEnemy(tile, enemy)))
                                 {
                                     enemies.Add(tileEnemy);
