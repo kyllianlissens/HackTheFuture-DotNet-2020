@@ -12,16 +12,27 @@ using HTF2020.Contracts.Requests;
 
 namespace TheFellowshipOfCode.DotNet.YourAdventure
 {
+    public class EnemyPoint
+    {
+        public EnemyGroup EnemyGroup;
+        public Point Point;
+
+        public EnemyPoint(Point point, EnemyGroup enemyGroup)
+        {
+            Point = point;
+            EnemyGroup = enemyGroup;
+        }
+    }
     public class MyAdventure : IAdventure
     {
         private readonly Random _random = new Random();
-        private Party _party;
 
 
         public List<Point> currentPath = null;
         public List<Point> TreasurePoints = new List<Point>();
-        public List<Point>
         public List<Point> BlacklistPoints = new List<Point>();
+        public List<EnemyPoint> enemies = new List<EnemyPoint>();
+
         public float[,] tilesmap;
         public Point FinishPoint;
 
@@ -57,14 +68,27 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                         Intelligence = 8
                     });
 
-            _party = party;
             return Task.FromResult(party);
         }
 
+        public bool isStrongerThan(Enemy e, PartyMember member)
+        {
+            switch (e.Type)
+            {
+                case "Sorcerer":
+                    return member.Strength > 8;
+                case "Heavy":
+                    return member.Intelligence > 8;
+                default:
+                    return true;
+            }
+        }
+
+        
 
         public Task<Turn> PlayTurn(PlayTurnRequest request)
         {
-            //0,0 -> 0,9
+            
             return riskBasedStrategic();
 
             Task<Turn> riskBasedStrategic()
@@ -99,23 +123,31 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                         var tile = map.Tiles[i, j];
                         #region WeightCalculation
                         var weight = 0.00F;
-                        if (tile.TileType == TileType.Enemy)
-                            weight = EnemyGroupDifficulty(tile.EnemyGroup, _party);
-                        else if (tile.TileType == TileType.Wall || tile.TerrainType == TerrainType.Water)
+                        if (tile.TileType == TileType.Wall || tile.TerrainType == TerrainType.Water)
                             weight = 0.0f;
                         else
                             weight = 0.1f;
                         tilesmap[i, j] = weight;
                         #endregion
 
-                        if (tile.TileType == TileType.TreasureChest)
+                        switch (tile.TileType)
                         {
-                            TreasurePoints.Add(new Point(i, j));
+                            case TileType.TreasureChest:
+                                TreasurePoints.Add(new Point(i, j));
+                                break;
+                            case TileType.Finish:
+                                FinishPoint = new Point(i,j );
+                                break;
+                            case TileType.Enemy:
+                                enemies.Add(new EnemyPoint(new Point(i, j), tile.EnemyGroup));
+                                break;
                         }
-
                     }
-                }
 
+                    calculated = true;
+                }
+                
+                
                 if (currentPath == null)
                 {
                     var grid = new Grid(tilesmap);
@@ -128,13 +160,25 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                             currentPath = Pathfinding.FindPath(grid, new Point(xLocation, yLocation), pointToGo, Pathfinding.DistanceType.Manhattan);
                         }
                     }
+                    else if (request.PossibleTargets.Any())
+                    {
+                        Enemy target = null;
+                        foreach (var possibleTarget in request.PossibleTargets)
+                        {
+                            if (isStrongerThan(possibleTarget, request.PartyMember))
+                            {
+                                target = possibleTarget;
+                            }
+                        }
+
+                    }
                     else
                     {
-
+                        currentPath = Pathfinding.FindPath(grid, new Point(xLocation, yLocation), FinishPoint, Pathfinding.DistanceType.Manhattan);
                     }
                 }
 
-                if (currentPath.Count > 0)
+                if (currentPath.Count > 0 )
                 {
                     var currentStep = currentPath[0];
                     currentPath.RemoveAt(0);
