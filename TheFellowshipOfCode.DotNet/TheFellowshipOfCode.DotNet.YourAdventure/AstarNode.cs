@@ -20,14 +20,8 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
 
     public class AstarNode
     {
-        public static int nodeSize;
         public AstarNode ParentAstarNode;
         public Vector2 Position;
-
-        public Vector2 Center
-        {
-            get { return new Vector2(Position.x + nodeSize / 2, Position.y + nodeSize / 2); }
-        }
 
         public float distanceToTarget;
         public float cost;
@@ -56,9 +50,8 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
 
         public Walkable walkable;
 
-        public AstarNode(int mapNodeSize, Vector2 pos, Walkable walkable, float weight = 1)
+        public AstarNode(Vector2 pos, Walkable walkable, float weight = 1)
         {
-            nodeSize = mapNodeSize;
             ParentAstarNode = null;
             Position = pos;
             distanceToTarget = -1;
@@ -89,9 +82,12 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
 
         public Stack<AstarNode> FindPath(Vector2 startPos, Vector2 endPos)
         {
-            //define start and end node
-            AstarNode startNode = new AstarNode(32,new Vector2((int) (startPos.x / AstarNode.nodeSize),(int) (startPos.y/AstarNode.nodeSize)), AstarNode.Walkable.Able);
-            AstarNode endNode = new AstarNode(32, new Vector2((int)(endPos.x / AstarNode.nodeSize), (int)(endPos.y / AstarNode.nodeSize)), AstarNode.Walkable.Able);
+            AstarNode startNode =
+                new AstarNode(new Vector2((startPos.x),(startPos.y)),
+                    AstarNode.Walkable.Able);
+            AstarNode endNode = new AstarNode(new Vector2(endPos.x, endPos.y), AstarNode.Walkable.Able);
+
+
 
             //Nodes that make the shortest path to treasure (if no treasures left, path to finish)
             Stack<AstarNode> Path = new Stack<AstarNode>();
@@ -121,18 +117,21 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                 {
                     if (!closedNodes.Contains(node) && (node.walkable == AstarNode.Walkable.Able))
                     {
-                        node.ParentAstarNode = currentNode;
-                        node.distanceToTarget = Math.Abs(node.Position.x - endNode.Position.x) +
-                                                Math.Abs(node.Position.y - endNode.Position.y);
-                        node.cost = node.weight + node.ParentAstarNode.cost; // change weight here ? 
-                        openNodes.Add(node);
-                        openNodes = openNodes.OrderBy(n => n.fFactor).ToList<AstarNode>();
+                        if (!openNodes.Contains(node))
+                        {
+                            node.ParentAstarNode = currentNode;
+                            node.distanceToTarget = Math.Abs(node.Position.x - endNode.Position.x) +
+                                                    Math.Abs(node.Position.y - endNode.Position.y);
+                            node.cost = node.weight + node.ParentAstarNode.cost; // change weight here ? 
+                            openNodes.Add(node);
+                            openNodes = openNodes.OrderBy(n => n.fFactor).ToList<AstarNode>();
+                        }
                     }
                 }
             }
-            
+
             //build path to end node, if end was not closed return null
-            if (!closedNodes.Exists(x=> x.Position == endNode.Position))
+            if (!closedNodes.Exists(x => x.Position == endNode.Position))
             {
                 return null;
             }
@@ -162,14 +161,14 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                 temp.Add(Grid[col][row + 1]);
             }
 
-            if (row -1 >= 0)
+            if (row - 1 >= 0)
             {
-                temp.Add(Grid[col][row-1]);
+                temp.Add(Grid[col][row - 1]);
             }
 
             if (col - 1 >= 0)
             {
-                temp.Add(Grid[col-1][row]);
+                temp.Add(Grid[col - 1][row]);
             }
 
             if (col + 1 < GridCols)
@@ -181,5 +180,3 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
         }
     }
 }
-
-

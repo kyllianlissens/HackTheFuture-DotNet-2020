@@ -14,31 +14,8 @@ using HTF2020.GameController.State;
 namespace TheFellowshipOfCode.DotNet.YourAdventure
 {
 
-    public class TileEnemy
-    {
-        public Tile tile;
-        public Enemy enemy;
 
-        public TileEnemy(Tile Tile, Enemy Enemy)
-        {
-            tile = Tile;
-            enemy = Enemy;
-        }
-    }
 
-    public class TileLocation
-    {
-        public int x;
-        public int y;
-        public Tile tile;
-
-        public TileLocation(int x, int y, Tile tile)
-        {
-            this.x = x;
-            this.y = y;
-            this.tile = tile;
-        }
-    }
     public class MyAdventure : IAdventure
     {
         private readonly Random _random = new Random();
@@ -95,20 +72,13 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
         
         List<Turn> previousTurns = new List<Turn>();
 
-        List<TileEnemy> enemies = new List<TileEnemy>();
-        List<TileLocation> tiles = new List<TileLocation>();
 
         private bool calculated = false;
 
-        public double RangeDiffrence(TileLocation t1, TileLocation t2)
-        {
-            return Math.Sqrt(Math.Pow((t2.x - t1.x), 2) + Math.Pow((t2.y - t1.y), 2));
 
-        }
-
-        public double EnemyGroupDifficulty(EnemyGroup enemies, Party party)
+        public float EnemyGroupDifficulty(EnemyGroup enemies, Party party)
         {
-            var totalCost = 0.00;
+            var totalCost = 0.00F;
             foreach (var enemy in enemies.Enemies)
             {
 
@@ -122,18 +92,25 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                 }
             }
 
-            totalCost -= amountOfPotions;
+            if (hasPotions) totalCost -= 2;
 
             return totalCost;
 
 
         }
 
-        public int amountOfPotions = 0;
+        public bool hasPotions = false;
+
+        public Stack<AstarNode> currentPath = null;
+
+        List<List<AstarNode>> nodeList = new List<List<AstarNode>>();//map in astarnodes
+        
+
+
 
         public Task<Turn> PlayTurn(PlayTurnRequest request)
         {
-            
+            //0,0 -> 0,9
             return riskBasedStrategic();
 
             Task<Turn> riskBasedStrategic()
@@ -145,40 +122,59 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                 var possibleActions = request.PossibleActions; //Al de mogelijke acties dat het character kan doen
                 var isInCombat = request.IsCombat;
                 var possibleEnemies = request.PossibleTargets;
-
-                if (possibleActions.Contains(TurnAction.DrinkPotion)) amountOfPotions++;
-
-                
+                if (possibleActions.Contains(TurnAction.DrinkPotion)) hasPotions = true;
 
                 
+               
+                
 
-                if (!calculated)
+                if (currentPath == null)
                 {
-                    calculated = true;
-                    for (int i = 0; i < map.Tiles.GetLength(0); i++)
+                    for (int i = 0; i < map.Tiles.GetLength(1); i++)
                     {
-                        for (int j = 0; j < map.Tiles.GetLength(1); j++)
+                        nodeList.Add(new List<AstarNode>());
+                        for (int j = 0; j < map.Tiles.GetLength(0); j++)
                         {
-                            var tile = map.Tiles[i, j];
-                            tiles.Add(new TileLocation(i, j, tile));
+                            var tile = map.Tiles[j,i];
+
+                            AstarNode.Walkable walkable;
+                            switch (tile.TileType)
+                            {
+                                case TileType.Wall:
+                                    walkable = AstarNode.Walkable.Not_Able;
+                                    break;
+                                default:
+                                    walkable = AstarNode.Walkable.Able;
+                                    break;
+                                    
+                            }
+
+                            var weight = 0.00F;
                             if (tile.TileType == TileType.Enemy)
                             {
-                                EnemyGroupDifficulty(tile.EnemyGroup, _party);
-                                foreach (var tileEnemy in tile.EnemyGroup.Enemies.Select(enemy => new TileEnemy(tile, enemy)))
-                                {
-                                    enemies.Add(tileEnemy);
-                                }
+                                weight = EnemyGroupDifficulty(tile.EnemyGroup, _party);
                             }
+
+
+                            nodeList[i].Add(new AstarNode(new Vector2(j, i), walkable, weight));
                            
                         }
-                    }
+
+                    } //Calculate MAP
+
+                    //What are we going to do :thonk:
+                    var destination = new Vector2(0, 9);
+                    var astar = new Astar(nodeList);
+                    currentPath = astar.FindPath(new Vector2(xLocation, yLocation), destination);
 
                     return Task.FromResult(new Turn(TurnAction.Pass));
                 }
 
-                if (request.PossibleActions.Contains(TurnAction.Loot)) return Task.FromResult(new Turn(TurnAction.Loot));
+                var currentStep = currentPath.Pop();
+                Console.WriteLine(currentStep.Position.x + " : " + currentStep.Position.y);
 
-                return Task.FromResult(new Turn(request.PossibleActions[_random.Next(request.PossibleActions.Length)]));
+
+                return Task.FromResult(new Turn(TurnAction.Pass));
 
             }
         }
