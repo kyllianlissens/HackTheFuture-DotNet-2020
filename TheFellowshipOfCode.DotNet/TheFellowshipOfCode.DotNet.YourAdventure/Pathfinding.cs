@@ -9,7 +9,6 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
         public enum DistanceType
         {
             Euclidean,
-
             Manhattan
         }
 

@@ -17,14 +17,11 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
         private readonly Random _random = new Random();
         private Party _party;
 
-
         public List<Point> currentPath = null;
         public List<Point> TreasurePoints = new List<Point>();
         public List<Point> BlacklistPoints = new List<Point>();
         public float[,] tilesmap;
         public Point FinishPoint;
-
-
         public bool hasPotions;
         public bool calculated = false;
 
@@ -68,9 +65,6 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
 
             Task<Turn> riskBasedStrategic()
             {
-                
-
-
                 var xLocation = request.PartyLocation.X; //X locatie partymember
                 var yLocation = request.PartyLocation.Y; //Y locatie partymember
                 var member = request.PartyMember;

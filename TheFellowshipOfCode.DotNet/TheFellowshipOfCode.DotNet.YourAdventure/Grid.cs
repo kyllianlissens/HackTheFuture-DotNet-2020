@@ -10,16 +10,6 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
         // nodes in grid
         public Node[,] nodes;
 
-        /// <summary>
-        ///     Create a new grid with tile prices.
-        /// </summary>
-        /// <param name="tiles_costs">
-        ///     A 2d array of tile prices.
-        ///     0.0f = Unwalkable tile.
-        ///     1.0f = Normal tile.
-        ///     > 1.0f = costy tile.
-        ///     < 1.0f = cheap tile.
-        /// </param>
         public Grid(float[,] tiles_costs)
         {
             // create nodes
@@ -31,10 +21,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                 nodes[x, y] = new Node(tiles_costs[x, y], x, y);
         }
 
-        /// <summary>
-        ///     Create a new grid without tile prices, eg with just walkable / unwalkable tiles.
-        /// </summary>
-        /// <param name="walkable_tiles">A 2d array representing which tiles are walkable and which are not.</param>
+        
         public Grid(bool[,] walkable_tiles)
         {
             // create nodes
@@ -46,11 +33,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                 nodes[x, y] = new Node(walkable_tiles[x, y] ? 1.0f : 0.0f, x, y);
         }
 
-        /// <summary>
-        ///     Create the nodes grid and set size.
-        /// </summary>
-        /// <param name="width">Nodes grid width.</param>
-        /// <param name="height">Nodes grid height.</param>
+        
         private void CreateNodes(int width, int height)
         {
             gridSizeX = width;
@@ -58,11 +41,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
             nodes = new Node[gridSizeX, gridSizeY];
         }
 
-        /// <summary>
-        ///     Updates the already created grid with new tile prices.
-        /// </summary>
-        /// <returns><c>true</c>, if grid was updated, <c>false</c> otherwise.</returns>
-        /// <param name="tiles_costs">Tiles costs.</param>
+       
         public void UpdateGrid(float[,] tiles_costs)
         {
             // check if need to re-create grid
@@ -77,11 +56,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                 nodes[x, y].Update(tiles_costs[x, y], x, y);
         }
 
-        /// <summary>
-        ///     Updates the already created grid without new tile prices, eg with just walkable / unwalkable tiles.
-        /// </summary>
-        /// <returns><c>true</c>, if grid was updated, <c>false</c> otherwise.</returns>
-        /// <param name="walkable_tiles">Walkable tiles.</param>
+       
         public void UpdateGrid(bool[,] walkable_tiles)
         {
             // check if need to re-create grid
@@ -96,11 +71,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                 nodes[x, y].Update(walkable_tiles[x, y] ? 1.0f : 0.0f, x, y);
         }
 
-        /// <summary>
-        ///     Get all the neighbors of a given tile in the grid.
-        /// </summary>
-        /// <param name="node">Node to get neighbors for.</param>
-        /// <returns>List of node neighbors.</returns>
+        
         public IEnumerable GetNeighbours(Node node, Pathfinding.DistanceType distanceType)
         {
             int x = 0, y = 0;
@@ -138,14 +109,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
             }
         }
 
-        /// <summary>
-        ///     Adds the node neighbour.
-        /// </summary>
-        /// <returns><c>true</c>, if node neighbour was added, <c>false</c> otherwise.</returns>
-        /// <param name="x">The x coordinate.</param>
-        /// <param name="y">The y coordinate.</param>
-        /// <param name="node">Node.</param>
-        /// <param name="neighbours">Neighbours.</param>
+        
         private Node AddNodeNeighbour(int x, int y, Node node)
         {
             if (x == 0 && y == 0) return null;
