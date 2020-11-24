@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using HTF2020.Contracts;
@@ -23,22 +24,34 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
             EnemyGroup = enemyGroup;
         }
     }
+    public class TreasurePoint
+    {
+        public TreasureChest TreasureChest;
+        public Point Point;
+
+        public TreasurePoint(Point point, TreasureChest treasureChest)
+        {
+            Point = point;
+            TreasureChest = treasureChest;
+        }
+    }
     public class MyAdventure : IAdventure
     {
         private readonly Random _random = new Random();
 
 
         public List<Point> currentPath = null;
-        public List<Point> TreasurePoints = new List<Point>();
+        public List<TreasurePoint> TreasurePoints = new List<TreasurePoint>();
         public List<Point> BlacklistPoints = new List<Point>();
         public List<EnemyPoint> enemies = new List<EnemyPoint>();
 
         public float[,] tilesmap;
         public Point FinishPoint;
 
-
+        public Party _party = null;
         public bool hasPotions;
         public bool calculated = false;
+
 
         public Task<Party> CreateParty(CreatePartyRequest request)
         {
@@ -67,25 +80,11 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                         Strength = 13,
                         Intelligence = 8
                     });
-
+            _party = party;
             return Task.FromResult(party);
         }
 
-        public bool isStrongerThan(Enemy e, PartyMember member)
-        {
-            switch (e.Type)
-            {
-                case "Sorcerer":
-                    return member.Strength > 8;
-                case "Heavy":
-                    return member.Intelligence > 8;
-                default:
-                    return true;
-            }
-        }
-
-        
-
+       
         public Task<Turn> PlayTurn(PlayTurnRequest request)
         {
             
@@ -105,6 +104,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                 var possibleEnemies = request.PossibleTargets;
 
                 if (possibleActions.Contains(TurnAction.DrinkPotion)) hasPotions = true;
+                if(possibleActions.Contains(TurnAction.DrinkPotion) && isLowHP()) return Task.FromResult(new Turn(TurnAction.DrinkPotion));
                 if (possibleActions.Contains(TurnAction.Loot))
                 {
                     BlacklistPoints.Add(new Point(xLocation, yLocation));
@@ -133,7 +133,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                         switch (tile.TileType)
                         {
                             case TileType.TreasureChest:
-                                TreasurePoints.Add(new Point(i, j));
+                                TreasurePoints.Add(new TreasurePoint(new Point(i, j), tile.TreasureChest));
                                 break;
                             case TileType.Finish:
                                 FinishPoint = new Point(i,j );
@@ -151,34 +151,47 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                 if (currentPath == null)
                 {
                     var grid = new Grid(tilesmap);
-                    if (TreasurePoints.Count > 0)
+                    if (TreasurePoints.Any(x => !x.TreasureChest.IsEmpty))
                     {
-                        var pointToGo = TreasurePoints[0];
-                        TreasurePoints.RemoveAt(0);
-                        if (!BlacklistPoints.Contains(pointToGo))
+                        List<Point> closestPoint = null;
+                        foreach (var treasure in TreasurePoints.Where(x => !x.TreasureChest.IsEmpty))
                         {
-                            currentPath = Pathfinding.FindPath(grid, new Point(xLocation, yLocation), pointToGo, Pathfinding.DistanceType.Manhattan);
-                        }
-                    }
-                    else if (request.PossibleTargets.Any())
-                    {
-                        Enemy target = null;
-                        foreach (var possibleTarget in request.PossibleTargets)
-                        {
-                            if (isStrongerThan(possibleTarget, request.PartyMember))
+                            if (closestPoint == null)
                             {
-                                target = possibleTarget;
+                                closestPoint = Pathfinding.FindPath(grid, new Point(xLocation, yLocation), treasure.Point, Pathfinding.DistanceType.Manhattan);
+                                continue;
+                            }
+                            else
+                            {
+                                var newPoint = Pathfinding.FindPath(grid, new Point(xLocation, yLocation), treasure.Point,
+                                    Pathfinding.DistanceType.Manhattan);
+                                if (closestPoint.Count > newPoint.Count)
+                                {
+                                    closestPoint = newPoint;
+                                }
                             }
                         }
-
+                        currentPath = closestPoint;
+                        
                     }
+
+                    //else if (!request.IsCombat&&canHandleCombat()&&!request.PossibleActions.Contains(TurnAction.Attack))
+                    //{
+                    //    currentPath = Pathfinding.FindPath(grid, new Point(xLocation, yLocation), enemies[0].Point, Pathfinding.DistanceType.Manhattan);
+                    //}
+                    //else if (request.PossibleActions.Contains(TurnAction.Attack) && canHandleCombat())
+                    //{
+                        
+                    //    return Task.FromResult(new Turn(TurnAction.Attack));
+
+                    //}
                     else
                     {
                         currentPath = Pathfinding.FindPath(grid, new Point(xLocation, yLocation), FinishPoint, Pathfinding.DistanceType.Manhattan);
                     }
                 }
 
-                if (currentPath.Count > 0 )
+                if (currentPath != null && currentPath.Count > 0 )
                 {
                     var currentStep = currentPath[0];
                     currentPath.RemoveAt(0);
@@ -190,6 +203,33 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                 return Task.FromResult(new Turn(TurnAction.Pass));
             }
         }
+
+        public bool isStrongerThan(Enemy e, PartyMember member)
+        {
+            switch (e.Type)
+            {
+                case "Sorcerer":
+                    return member.Strength > 8;
+                case "Heavy":
+                    return member.Intelligence > 8;
+                default:
+                    return true;
+            }
+        }
+
+        public bool canHandleCombat()
+        {
+            var totalHP = _party.Members.Sum(x => x.CurrentHealthPoints);
+            var maxHP = _party.Members.Sum(x => x.HealthPoints);
+            return (totalHP / maxHP) * 100 > 60;
+        }
+        public bool isLowHP()
+        {
+            var totalHP = _party.Members.Sum(x => x.CurrentHealthPoints);
+            var maxHP = _party.Members.Sum(x => x.HealthPoints);
+            return (totalHP / maxHP) * 100 > 40;
+        }
+
 
         public TurnAction GetTurnAction(int oX, int oY, Point comparisonPoint)
         {

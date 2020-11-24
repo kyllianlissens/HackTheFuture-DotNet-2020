@@ -29,7 +29,7 @@ namespace TheFellowshipOfCode.DotNet.AdventureRunner
             "This is the time between turns in milliseconds. Only use this if you also use the '-v|--verbose' option.",
             CommandOptionType.SingleValue)]
         // ReSharper disable once UnassignedGetOnlyAutoProperty
-        private int TimeBetweenTurns { get; } = 1000;
+        private int TimeBetweenTurns { get; } = 100;
 
 
         #endregion
