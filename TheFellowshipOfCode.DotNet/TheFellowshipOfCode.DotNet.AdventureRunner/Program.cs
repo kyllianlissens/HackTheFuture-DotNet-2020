@@ -11,6 +11,8 @@ namespace TheFellowshipOfCode.DotNet.AdventureRunner
     [Command(Name = "htf2020", Description = "The HTF2020 .NET Challenge")]
     public class Program
     {
+        #region Arguments
+
         [Argument(0, Description = "Path to a valid map file. Map files have the '.htf' extension.")]
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         private string MapPath { get; } = "TheFellowshipOfCode.DotNet.YourAdventure.htf";
@@ -29,6 +31,9 @@ namespace TheFellowshipOfCode.DotNet.AdventureRunner
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         private int TimeBetweenTurns { get; } = 1000;
 
+
+        #endregion
+    
         public static void Main(string[] args) => CommandLineApplication.Execute<Program>(args);
 
         private async Task OnExecute()
