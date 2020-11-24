@@ -13,9 +13,6 @@ using HTF2020.GameController.State;
 
 namespace TheFellowshipOfCode.DotNet.YourAdventure
 {
-
-
-
     public class MyAdventure : IAdventure
     {
         private readonly Random _random = new Random();
@@ -141,10 +138,10 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
                             switch (tile.TileType)
                             {
                                 case TileType.Wall:
-                                    walkable = AstarNode.Walkable.Not_Able;
+                                    walkable = AstarAlgorithm.Walkable.Not_Able;
                                     break;
                                 default:
-                                    walkable = AstarNode.Walkable.Able;
+                                    walkable = AstarAlgorithm.Walkable.Able;
                                     break;
                                     
                             }
@@ -164,7 +161,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
 
                     //What are we going to do :thonk:
                     var destination = new Vector2(0, 9);
-                    var astar = new Astar(nodeList);
+                    var astar = new AstarAlgorithm(nodeList);
                     currentPath = astar.FindPath(new Vector2(xLocation, yLocation), destination);
 
                     return Task.FromResult(new Turn(TurnAction.Pass));

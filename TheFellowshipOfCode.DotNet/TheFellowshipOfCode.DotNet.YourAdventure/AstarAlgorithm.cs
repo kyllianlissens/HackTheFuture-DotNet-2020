@@ -61,7 +61,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
         }
     }
 
-    public class Astar
+    public class AstarAlgorithm
     {
         private List<List<AstarNode>> Grid;
 
@@ -75,7 +75,7 @@ namespace TheFellowshipOfCode.DotNet.YourAdventure
             get { return Grid.Count; }
         }
 
-        public Astar(List<List<AstarNode>> grid)
+        public AstarAlgorithm(List<List<AstarNode>> grid)
         {
             Grid = grid;
         }
